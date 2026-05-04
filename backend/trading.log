@@ -30658,3 +30658,23 @@
 2026-05-04 00:36:59,714 [INFO] websocket_feed: Connecting HSI order feed: wss://mlhsi.kotaksecurities.com
 2026-05-04 00:36:59,716 [INFO] websocket_feed: Connecting HSI order feed: wss://mlhsi.kotaksecurities.com
 2026-05-04 00:36:59,716 [INFO] websocket_feed: Connecting HSI order feed: wss://mlhsi.kotaksecurities.com
+2026-05-05 00:04:44,507 [INFO] ai_signals: AI Signal background refresh started
+2026-05-05 00:04:44,509 [INFO] main: AI Signal background refresh started
+2026-05-05 00:10:24,813 [ERROR] yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: INVALID123.NS"}}}
+2026-05-05 00:10:26,481 [ERROR] yfinance: $INVALID123.NS: possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")
+2026-05-05 00:32:44,240 [WARNING] ai_signals: Signal failed for SUNPHARMA: 'NoneType' object is not subscriptable
+2026-05-05 00:32:45,255 [WARNING] ai_signals: Signal failed for HINDUNILVR: 'NoneType' object is not subscriptable
+2026-05-05 00:35:38,571 [INFO] ai_signals: AI Signal background refresh started
+2026-05-05 00:35:38,573 [INFO] main: AI Signal background refresh started
+2026-05-05 00:35:53,774 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-05-05 00:35:53,776 [WARNING] huggingface_hub.utils._http: Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-05-05 00:35:53,830 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/ProsusAI/finbert/4556d13015211d73dccd3fdd39d39232506f3e43/config.json "HTTP/1.1 200 OK"
+2026-05-05 00:35:54,228 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/ProsusAI/finbert/resolve/main/model.safetensors "HTTP/1.1 404 Not Found"
+2026-05-05 00:35:54,664 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/ProsusAI/finbert "HTTP/1.1 200 OK"
+2026-05-05 00:35:55,074 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/ProsusAI/finbert/commits/main "HTTP/1.1 200 OK"
+2026-05-05 00:35:55,422 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/ProsusAI/finbert/discussions?p=0 "HTTP/1.1 200 OK"
+2026-05-05 00:35:55,639 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/ProsusAI/finbert/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-05-05 00:35:55,745 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/ProsusAI/finbert/commits/refs%2Fpr%2F29 "HTTP/1.1 200 OK"
+2026-05-05 00:35:55,966 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/ProsusAI/finbert/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-05-05 00:35:56,056 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/ProsusAI/finbert/resolve/refs%2Fpr%2F29/model.safetensors.index.json "HTTP/1.1 404 Not Found"
+2026-05-05 00:35:56,371 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/ProsusAI/finbert/resolve/refs%2Fpr%2F29/model.safetensors "HTTP/1.1 302 Found"
