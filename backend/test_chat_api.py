@@ -6,7 +6,7 @@ import requests
 import json
 import time
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "https://ai-project-1-ooli.onrender.com"
 
 print("=" * 80)
 print("TESTING CHAT AI MODULE - API CALLS")
