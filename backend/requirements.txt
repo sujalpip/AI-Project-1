@@ -1,0 +1,23 @@
+fastapi
+uvicorn
+yfinance
+pandas
+ta
+scikit-learn
+transformers
+torch
+feedparser
+beautifulsoup4
+requests
+pydantic
+
+opencv-python-headless
+ultralytics
+python-multipart
+scipy
+
+# Kotak Neo Trading
+pyotp
+python-dotenv
+pytz
+neo-api-client @ git+https://github.com/Kotak-Neo/Kotak-neo-api-v2.git

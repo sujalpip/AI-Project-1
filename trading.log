@@ -1,0 +1,12 @@
+2026-05-02 03:52:35,755 [INFO] ai_signals: AI Signal background refresh started
+2026-05-02 03:52:35,757 [INFO] __main__: AI Signal background refresh started
+2026-05-02 04:04:09,667 [INFO] ai_signals: AI Signal background refresh started
+2026-05-02 04:04:09,668 [INFO] __main__: AI Signal background refresh started
+2026-05-02 04:04:40,539 [ERROR] yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: TATAMOTORS.NS"}}}
+2026-05-02 04:04:41,438 [ERROR] yfinance: $TATAMOTORS.NS: possibly delisted; no price data found  (period=3mo) (Yahoo error = "No data found, symbol may be delisted")
+2026-05-02 04:05:05,049 [ERROR] yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: LTIMINDTREE.NS"}}}
+2026-05-02 04:05:06,024 [ERROR] yfinance: $LTIMINDTREE.NS: possibly delisted; no price data found  (period=3mo) (Yahoo error = "No data found, symbol may be delisted")
+2026-05-02 04:08:24,087 [INFO] ai_signals: AI Signal background refresh started
+2026-05-02 04:08:24,088 [INFO] __main__: AI Signal background refresh started
+2026-05-02 04:10:43,737 [ERROR] yfinance: $TATAMOTORS.NS: possibly delisted; no price data found  (period=3mo) (Yahoo error = "No data found, symbol may be delisted")
+2026-05-02 04:11:02,213 [ERROR] yfinance: $LTIMINDTREE.NS: possibly delisted; no price data found  (period=3mo) (Yahoo error = "No data found, symbol may be delisted")
