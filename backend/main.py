@@ -1,3 +1,5 @@
+print("APP STARTING SUCCESSFULLY")
+
 from fastapi import FastAPI, HTTPException, File, UploadFile, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
@@ -14,12 +16,12 @@ from sentiment import get_stock_sentiment
 from model import train_predict_model
 from decision import generate_recommendation
 from nlp_utils import extract_ticker_and_intent, generate_ai_response
-from cv_module.analyzer import analyze_chart_pipeline
-from kotak_service import kotak
-from signal_executor import executor
+# from cv_module.analyzer import analyze_chart_pipeline
+# from kotak_service import kotak
+# from signal_executor import executor
 from trading_engine import scalping_bot, auto_trader
 from ai_signals import signal_service
-from websocket_feed import market_feed, order_feed
+# from websocket_feed import market_feed, order_feed
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 logging.basicConfig(
