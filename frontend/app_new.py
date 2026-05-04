@@ -11,7 +11,7 @@ st.set_page_config(
     page_icon="⚡",
     initial_sidebar_state="expanded"
 )
-API = "http://localhost:8000"
+API = "https://ai-project-1-ooli.onrender.com"
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
 st.markdown("""<style>
@@ -600,3 +600,151 @@ Trades: <strong style="color:#a78bfa;">{at.get('trades_today',0)}</strong>
         for e in at_log[:20]: st.markdown(logrow(e.get("type",""),e.get("message",""),e.get("timestamp",""),lc2.get(e.get("type",""),"#64748b")), unsafe_allow_html=True)
     else:
         st.markdown('<div style="color:#334155;padding:14px;font-size:0.83rem;">No activity yet.</div>', unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TAB 6 — PORTFOLIO
+# ═══════════════════════════════════════════════════════════════════════════════
+with t_port:
+    st.markdown(sec("💰 Portfolio & P&L","Live Data","#4ade80"), unsafe_allow_html=True)
+    if not logged_in:
+        st.markdown('<div style="background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.25);border-radius:12px;padding:20px;text-align:center;color:#f87171;">Login to Kotak to view portfolio</div>', unsafe_allow_html=True)
+    else:
+        limits = api_get("/api/kotak/limits/full") or {}
+        net         = float(str(limits.get("Net","0")).replace(",","") or 0)
+        collateral  = float(str(limits.get("CollateralValue","0")).replace(",","") or 0)
+        margin_used = float(str(limits.get("MarginUsed","0")).replace(",","") or 0)
+        unreal      = float(str(limits.get("UnrealizedMtomPrsnt","0")).replace(",","") or 0)
+        risk_d      = api_get("/api/kotak/risk/status") or {}
+        pnl         = risk_d.get("daily_pnl",0)
+        pnl_c       = "#4ade80" if pnl>=0 else "#f87171"
+        net_c       = "#4ade80" if net>0 else "#f87171"
+
+        c1,c2,c3,c4 = st.columns(4)
+        c1.markdown(kpi("Net Available",f"&#8377;{net:,.2f}",net_c,"Cash + Collateral"), unsafe_allow_html=True)
+        c2.markdown(kpi("Collateral",f"&#8377;{collateral:,.2f}","#60a5fa","Pledged"), unsafe_allow_html=True)
+        c3.markdown(kpi("Margin Used",f"&#8377;{margin_used:,.2f}","#f87171" if margin_used>0 else "#94a3b8","Active"), unsafe_allow_html=True)
+        c4.markdown(kpi("Daily P&L",f"&#8377;{pnl:,.2f}",pnl_c,"Session"), unsafe_allow_html=True)
+
+        if unreal != 0:
+            mc1,mc2,mc3 = st.columns(3)
+            mc1.markdown(kpi("Unrealised MTM",f"&#8377;{unreal:,.2f}","#4ade80" if unreal>=0 else "#f87171"), unsafe_allow_html=True)
+            mc2.markdown(kpi("Open Positions",risk_d.get("open_positions",0),"#a78bfa"), unsafe_allow_html=True)
+            mc3.markdown(kpi("Trades Today",risk_d.get("daily_trades",0),"#60a5fa"), unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        pt1,pt2,pt3 = st.tabs(["📍 Positions","🏦 Holdings","🤖 AI Execution Log"])
+
+        with pt1:
+            pos = (api_get("/api/kotak/positions") or {}).get("positions",[])
+            if pos and isinstance(pos,list) and len(pos)>0:
+                try:
+                    df=pd.DataFrame(pos)
+                    rn={"trdSym":"Symbol","sym":"Name","qty":"Net Qty","prod":"Product","exSeg":"Exchange","buyAmt":"Buy Amt","sellAmt":"Sell Amt","flBuyQty":"Filled Buy","flSellQty":"Filled Sell"}
+                    df=df.rename(columns={k:v for k,v in rn.items() if k in df.columns})
+                    show=[c for c in ["Symbol","Name","Net Qty","Product","Exchange","Buy Amt","Sell Amt","Filled Buy","Filled Sell"] if c in df.columns]
+                    st.dataframe(df[show] if show else df,use_container_width=True,hide_index=True)
+                    try:
+                        tb=sum(float(p.get("buyAmt",0)) for p in pos)
+                        ts=sum(float(p.get("sellAmt",0)) for p in pos)
+                        np2=ts-tb; npc="#4ade80" if np2>=0 else "#f87171"
+                        st.markdown(f'<div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;">'+
+                            "".join([f'<div style="background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.065);border-radius:10px;padding:12px 18px;flex:1;"><div style="font-size:0.62rem;color:#334155;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">{l}</div><div style="font-size:1rem;font-weight:700;color:{c};font-family:JetBrains Mono,monospace;">&#8377;{v:,.2f}</div></div>' for l,v,c in [("Total Buy",tb,"#f87171"),("Total Sell",ts,"#4ade80"),("Net P&L",np2,npc)]])+
+                            '</div>', unsafe_allow_html=True)
+                    except Exception: pass
+                except Exception: st.json(pos)
+            else:
+                st.markdown('<div style="color:#334155;padding:20px;text-align:center;">No open positions today</div>', unsafe_allow_html=True)
+
+        with pt2:
+            hold = (api_get("/api/kotak/holdings") or {}).get("holdings",[])
+            if hold and isinstance(hold,list) and len(hold)>0:
+                try:
+                    df=pd.DataFrame(hold)
+                    rn={"displaySymbol":"Symbol","instrumentName":"Name","quantity":"Qty","averagePrice":"Avg Price","closingPrice":"Close","mktValue":"Mkt Value","unrealisedGainLoss":"Unrealised P&L","sellableQuantity":"Sellable","exchangeSegment":"Exchange","subType":"Type"}
+                    df=df.rename(columns={k:v for k,v in rn.items() if k in df.columns})
+                    show=[c for c in ["Symbol","Name","Qty","Avg Price","Close","Mkt Value","Unrealised P&L","Sellable","Exchange","Type"] if c in df.columns]
+                    st.dataframe(df[show] if show else df,use_container_width=True,hide_index=True)
+                    try:
+                        tc=sum(float(h.get("holdingCost",0)) for h in hold)
+                        tv=sum(float(h.get("mktValue",0)) for h in hold)
+                        tp=sum(float(h.get("unrealisedGainLoss",0)) for h in hold)
+                        tpc="#4ade80" if tp>=0 else "#f87171"
+                        st.markdown(f'<div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;">'+
+                            "".join([f'<div style="background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.065);border-radius:10px;padding:12px 18px;flex:1;"><div style="font-size:0.62rem;color:#334155;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">{l}</div><div style="font-size:1rem;font-weight:700;color:{c};font-family:JetBrains Mono,monospace;">&#8377;{v:,.2f}</div></div>' for l,v,c in [("Total Cost",tc,"#94a3b8"),("Market Value",tv,"#60a5fa"),("Unrealised P&L",tp,tpc)]])+
+                            '</div>', unsafe_allow_html=True)
+                    except Exception: pass
+                except Exception: st.json(hold)
+            else:
+                st.markdown('<div style="color:#334155;padding:20px;text-align:center;">No holdings found</div>', unsafe_allow_html=True)
+
+        with pt3:
+            elog=(api_get("/api/kotak/execution/log") or {}).get("log",[])
+            if elog:
+                df=pd.DataFrame(elog)
+                show=[c for c in ["timestamp","symbol","action","status","ltp","quantity","sl_price","message"] if c in df.columns]
+                st.dataframe(df[show] if show else df,use_container_width=True,hide_index=True)
+            else:
+                st.markdown('<div style="color:#334155;padding:20px;text-align:center;">No AI execution history this session</div>', unsafe_allow_html=True)
+
+        # Order Book
+        st.markdown(sec("📋 Today's Orders","","#60a5fa"), unsafe_allow_html=True)
+        or1,or2,or3=st.columns([1,2,1])
+        with or1:
+            if st.button("🔄 Refresh",use_container_width=True,key="ord_ref"): st.rerun()
+        with or2:
+            cid=st.text_input("Order ID to cancel",placeholder="Paste order ID",key="port_cid",label_visibility="collapsed")
+        with or3:
+            if st.button("❌ Cancel",use_container_width=True,key="port_cancel"):
+                if cid:
+                    try:
+                        r=requests.delete(f"{API}/api/kotak/order/{cid}",timeout=10)
+                        st.success("Cancelled") if r.status_code==200 else st.error(r.json().get("detail",""))
+                    except Exception as e: st.error(str(e))
+                else: st.warning("Enter order ID")
+
+        orders=(api_get("/api/kotak/orders") or {}).get("orders",[])
+        if orders and isinstance(orders,list) and len(orders)>0:
+            try:
+                df=pd.DataFrame(orders)
+                rn={"nOrdNo":"Order ID","ordSt":"Status","trdSym":"Symbol","qty":"Qty","prc":"Price","avgPrc":"Avg Price","trnsTp":"B/S","prcTp":"Type","vldt":"Validity","exSeg":"Exchange","rejRsn":"Reject Reason","ordDtTm":"Time"}
+                df=df.rename(columns={k:v for k,v in rn.items() if k in df.columns})
+                show=[c for c in ["Order ID","Symbol","B/S","Qty","Price","Avg Price","Type","Status","Validity","Exchange","Reject Reason","Time"] if c in df.columns]
+                st.dataframe(df[show] if show else df,use_container_width=True,hide_index=True)
+                st.markdown("<br>", unsafe_allow_html=True)
+                hid=st.text_input("View order history (enter Order ID)",placeholder="e.g. 250720000007242",key="hist_id")
+                if hid and st.button("📜 Load History",use_container_width=True,key="load_hist"):
+                    hist=(api_get(f"/api/kotak/orders/{hid}/history") or {}).get("history",[])
+                    if hist:
+                        df_h=pd.DataFrame(hist)
+                        rn_h={"nOrdNo":"Order ID","ordSt":"Status","flDtTm":"Time","rejRsn":"Reject Reason","qty":"Qty","prc":"Price","avgPrc":"Avg Price","prod":"Product","trnsTp":"B/S","prcTp":"Type"}
+                        df_h=df_h.rename(columns={k:v for k,v in rn_h.items() if k in df_h.columns})
+                        show_h=[c for c in ["Time","Status","Qty","Price","Avg Price","Product","B/S","Type","Reject Reason"] if c in df_h.columns]
+                        st.markdown(f'<div style="font-size:0.72rem;font-weight:700;color:#64748b;margin-bottom:6px;">Order {hid} — {len(hist)} status updates</div>', unsafe_allow_html=True)
+                        st.dataframe(df_h[show_h] if show_h else df_h,use_container_width=True,hide_index=True)
+                    else: st.info("No history found.")
+            except Exception: st.json(orders)
+        else:
+            st.markdown('<div style="color:#334155;padding:14px;text-align:center;">No orders today</div>', unsafe_allow_html=True)
+
+        # Trade Book
+        st.markdown(sec("💹 Trade Book","Executed","#4ade80"), unsafe_allow_html=True)
+        trades=(api_get("/api/kotak/trades") or {}).get("trades",[])
+        if trades and isinstance(trades,list) and len(trades)>0:
+            try:
+                df_t=pd.DataFrame(trades)
+                rn_t={"nOrdNo":"Order ID","trdSym":"Symbol","qty":"Qty","avgPrc":"Avg Price","fldQty":"Filled","flDt":"Date","exTm":"Time","prcTp":"Type","prod":"Product","trnsTp":"B/S","exOrdId":"Exchange ID"}
+                df_t=df_t.rename(columns={k:v for k,v in rn_t.items() if k in df_t.columns})
+                show_t=[c for c in ["Symbol","B/S","Qty","Avg Price","Filled","Date","Time","Type","Product","Order ID"] if c in df_t.columns]
+                st.dataframe(df_t[show_t] if show_t else df_t,use_container_width=True,hide_index=True)
+                try:
+                    bt=[t for t in trades if t.get("trnsTp","")=="B"]; st2=[t for t in trades if t.get("trnsTp","")=="S"]
+                    bv=sum(float(t.get("avgPrc",0))*int(t.get("qty",0)) for t in bt)
+                    sv=sum(float(t.get("avgPrc",0))*int(t.get("qty",0)) for t in st2)
+                    st.markdown(f'<div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;">'+
+                        "".join([f'<div style="background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.065);border-radius:10px;padding:12px 18px;flex:1;"><div style="font-size:0.62rem;color:#334155;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">{l}</div><div style="font-size:1rem;font-weight:700;color:{c};font-family:JetBrains Mono,monospace;">{v}</div></div>' for l,v,c in [(f"Buy Trades ({len(bt)})",f"&#8377;{bv:,.2f}","#f87171"),(f"Sell Trades ({len(st2)})",f"&#8377;{sv:,.2f}","#4ade80"),("Total Trades",str(len(trades)),"#60a5fa")]])+
+                        '</div>', unsafe_allow_html=True)
+                except Exception: pass
+            except Exception: st.json(trades)
+        else:
+            st.markdown('<div style="color:#334155;padding:14px;text-align:center;">No trades executed today</div>', unsafe_allow_html=True)

@@ -47,8 +47,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    signal_service.start_background_refresh()
-    logger.info("AI Signal background refresh started")
+    pass  # disable for now
 
 
 # ─── Pydantic Models ──────────────────────────────────────────────────────────
