@@ -32,6 +32,6 @@ echo Starting Streamlit Frontend on Port 8501...
 start cmd /k "cd frontend && streamlit run app.py"
 
 echo Both services have been started in new windows.
-echo - Backend API: https://ai-project-1-ooli.onrender.com/docs
-echo - Frontend UI: https://ai-project-1-qe2sp8spvczl8w6yqkg8sa.streamlit.app/
+echo - Backend API: http://localhost:8000/docs
+echo - Frontend UI: http://localhost:8501
 pause
