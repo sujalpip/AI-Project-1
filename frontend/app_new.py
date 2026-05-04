@@ -144,50 +144,6 @@ background:linear-gradient(135deg,#60a5fa 0%,#a78bfa 50%,#34d399 100%);
 Indian Market Intelligence</div>
 </div>""", unsafe_allow_html=True)
 
-status    = api_get("/api/kotak/status") or {}
-logged_in = status.get("logged_in", False)
-
-if logged_in:
-    st.sidebar.markdown("""<div style="background:rgba(74,222,128,0.07);border:1px solid rgba(74,222,128,0.22);
-border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
-<div style="width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;flex-shrink:0;"></div>
-<span style="font-size:0.77rem;font-weight:700;color:#4ade80;letter-spacing:0.05em;">KOTAK CONNECTED</span>
-</div>""", unsafe_allow_html=True)
-else:
-    st.sidebar.markdown("""<div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);
-border-radius:10px;padding:10px 14px;margin-bottom:14px;">
-<span style="font-size:0.77rem;font-weight:700;color:#fbbf24;">⬤ NOT LOGGED IN</span>
-</div>""", unsafe_allow_html=True)
-
-if st.sidebar.button("🔐  Login to Kotak", type="primary", use_container_width=True):
-    with st.spinner("Authenticating via TOTP..."):
-        r = api_post("/api/kotak/login", {"totp": st.session_state.get("manual_totp","")})
-        if r:
-            s = r.get("status","")
-            if s == "success":
-                st.session_state.pop("show_totp",None); st.sidebar.success("✅ Logged in!"); st.rerun()
-            elif s in ("invalid_totp","need_manual_totp"):
-                st.session_state["show_totp"] = True; st.rerun()
-            elif s == "totp_not_registered":
-                st.sidebar.warning("Register TOTP at kotaksecurities.com → Trade API")
-            else:
-                st.sidebar.error(r.get("message","Login failed"))
-        else:
-            st.sidebar.error("Backend offline — start uvicorn on port 8000")
-
-if st.session_state.get("show_totp"):
-    st.sidebar.text_input("6-digit TOTP from Authenticator", max_chars=6, key="manual_totp")
-    if st.sidebar.button("✅  Submit TOTP", type="primary", use_container_width=True):
-        r = api_post("/api/kotak/login", {"totp": st.session_state.get("manual_totp","")})
-        if r and r.get("status") == "success":
-            st.session_state.pop("show_totp",None); st.rerun()
-        else:
-            st.sidebar.error(r.get("message","Failed") if r else "Error")
-
-if logged_in and st.sidebar.button("🔓  Logout", use_container_width=True):
-    api_post("/api/kotak/logout"); st.rerun()
-
-st.sidebar.markdown("---")
 st.sidebar.markdown('<div style="font-size:0.6rem;color:#1e293b;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:7px;">Quick Picks</div>', unsafe_allow_html=True)
 st.sidebar.markdown("""<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:14px;">
 """ + "".join([f'<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:7px;padding:5px 3px;text-align:center;font-size:0.68rem;font-weight:700;color:#64748b;font-family:JetBrains Mono,monospace;">{s}</div>' for s in ["RELIANCE","TCS","INFY","HDFCBANK","SBIN","ITC"]]) + "</div>", unsafe_allow_html=True)
@@ -633,6 +589,55 @@ with t_port:
             mc3.markdown(kpi("Trades Today",risk_d.get("daily_trades",0),"#60a5fa"), unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
+        
+        # ── Kotak Login Section ──────────────────────────────────────────────
+        st.markdown("### 🔐 Kotak Neo Authentication")
+        
+        status = api_get("/api/kotak/status") or {}
+        logged_in = status.get("logged_in", False)
+        
+        col_status, col_action = st.columns([2, 1])
+        
+        with col_status:
+            if logged_in:
+                st.success("✅ KOTAK CONNECTED")
+            else:
+                st.warning("⚠️ NOT LOGGED IN")
+        
+        with col_action:
+            if logged_in:
+                if st.button("🔓 Logout", use_container_width=True):
+                    api_post("/api/kotak/logout")
+                    st.rerun()
+            else:
+                if st.button("🔐 Login", type="primary", use_container_width=True):
+                    st.session_state["show_kotak_login"] = True
+        
+        # Login form
+        if st.session_state.get("show_kotak_login") and not logged_in:
+            st.markdown("---")
+            st.markdown("#### Enter TOTP Code")
+            totp_input = st.text_input("6-digit TOTP from Google Authenticator", max_chars=6, key="kotak_totp")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("✅ Submit", type="primary", use_container_width=True):
+                    with st.spinner("Authenticating..."):
+                        r = api_post("/api/kotak/login", {"totp": totp_input})
+                    if r and r.get("status") == "success":
+                        st.success("✅ Logged in successfully!")
+                        st.session_state.pop("show_kotak_login", None)
+                        st.rerun()
+                    else:
+                        st.error(r.get("message", "Login failed") if r else "Connection error")
+            
+            with col2:
+                if st.button("❌ Cancel", use_container_width=True):
+                    st.session_state.pop("show_kotak_login", None)
+                    st.rerun()
+        
+        st.markdown("---")
+        
         pt1,pt2,pt3 = st.tabs(["📍 Positions","🏦 Holdings","🤖 AI Execution Log"])
 
         with pt1:
