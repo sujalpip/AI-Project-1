@@ -176,6 +176,10 @@ FinBERT Sentiment &nbsp;·&nbsp; ML Prediction &nbsp;·&nbsp; Live Trading &nbsp
 </div></div>""", unsafe_allow_html=True)
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
+# Initialize logged_in status globally
+status = api_get("/api/kotak/status") or {}
+logged_in = status.get("logged_in", False)
+
 t_dash,t_sig,t_trade,t_scalp,t_auto,t_port,t_cv,t_chat = st.tabs([
     "📊  Dashboard","📡  AI Signals","⚡  Live Trade",
     "🎯  Scalping","🤖  Auto Bot","💰  Portfolio",
@@ -592,9 +596,6 @@ with t_port:
         
         # ── Kotak Login Section ──────────────────────────────────────────────
         st.markdown("### 🔐 Kotak Neo Authentication")
-        
-        status = api_get("/api/kotak/status") or {}
-        logged_in = status.get("logged_in", False)
         
         col_status, col_action = st.columns([2, 1])
         
