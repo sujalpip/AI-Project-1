@@ -17,8 +17,8 @@ from io import StringIO
 from pathlib import Path
 from dotenv import load_dotenv
 
-_env_path = Path(__file__).parent / ".env"
-load_dotenv(dotenv_path=str(_env_path), override=True)
+from dotenv import load_dotenv
+load_dotenv()   # safe fallback, but not required on Render
 logger = logging.getLogger(__name__)
 
 # ── Optional imports ──────────────────────────────────────────────────────────
@@ -83,6 +83,7 @@ class KotakService:
         logger.info("KotakService initialised (direct REST mode)")
 
     def is_available(self) -> bool:
+        print("Consumer key:", self.consumer_key)
         return bool(self.consumer_key and not self.consumer_key.startswith("YOUR_"))
 
     # ── Auth headers ──────────────────────────────────────────────────────────
@@ -721,4 +722,10 @@ class KotakService:
 
 
 # ── Singleton ─────────────────────────────────────────────────────────────────
-kotak = KotakService()
+kotak = None
+
+def get_kotak():
+    global kotak
+    if kotak is None:
+        kotak = KotakService()
+    return kotak
